@@ -1,0 +1,19 @@
+Project Purpose:
+    Simulate a cache and record: memory reads, memory writes, 
+    cache hits, cache misses, and total miss ratio (parsed from
+    a trace file). Implement two different eviction policies (LRU and FIFO),
+    utilize both write-back and write-through policies. Input should
+    also take cache associativity and cache size. We assume each block size
+    is 64 bytes.
+
+Command Line Arguments: 
+    ./out <cache_size> <associativity> <replacement_policy> <write_policy> <trace_file>
+
+    <CACHE_SIZE> is the size of the simulated cache in bytes
+    <ASSOC> associativity of cache
+    <REPLACEMENT> replacement policy: 0 for LRU, 1 for FIFO
+    <WB> Write-back policy: 0 for write-through, 1 for write-back
+    <trace_file> trace file name and path
+
+    Example:
+    ./out 32768 8 0 1 ./trace_files/TRACE.t
