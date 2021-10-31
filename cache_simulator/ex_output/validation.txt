@@ -1,0 +1,24 @@
+Specifications of the project can be found here PROJECT1.pdf (Fall 2021)
+Traces:
+1- XSBench Application Memory Trace (XSBENCH.t)
+https://drive.google.com/file/d/0B7s9Yklk4GuCRWE3bkNncFdiM28/view?usp=sharing
+ (Links to an external site.)
+Links to an external site.
+
+2- MiniFE Application Memory Trace (MINIFE.t)
+https://drive.google.com/file/d/0B7s9Yklk4GuCODdQTjBwOXFVdjA/view?usp=sharing
+ (Links to an external site.)
+Links to an external site.
+ 
+A good starting point would be this code here (discussed in the class): skeleton.docx
+ 
+Validation Runs:
+./SIM 32768 8 0 1 /home/TRACES/XSBENCH.t
+0.112008 
+44.000000 
+2371758.000000
+ 
+./SIM 32768 8 0 0 /home/TRACES/XSBENCH.t
+0.112008 
+5013495.000000
+2371758.000000
