@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 
 
 #define WEAKLY_NOT_TAKEN 1
@@ -33,19 +32,34 @@
 
 int printVerbose = 1;
 
+int power(int base, int exponent) {
+
+    if (exponent < 0) {
+        return -1;
+    }
+    else if (exponent == 0) {
+        return 1;
+    }
+    else if (exponent == 1) {
+        return base;
+    }
+    else {
+        return power(base*base, exponent - 1);
+    }
+}
 
 void initializeEntryTable(int* entryTable, int M) {
 
-    for (int i = 0; i < pow(2, M); i++) {
+    for (int i = 0; i < power(2, M); i++) {
         entryTable[i] = WEAKLY_TAKEN;
     }
 }
 
 
-void output(FILE* outFile, int M, int N, double* mispredictionRate) {
+void output(FILE* outFile, int M, int N, double mispredictionRate) {
 
     fprintf(outFile, "Configuration: M = %d, N = %d\n", M, N);
-    fprintf(outFile, "Misprediction Rate: %.2f\n", *mispredictionRate);
+    fprintf(outFile, "Misprediction Rate: %.2f\n", mispredictionRate);
 }
 
 
@@ -60,7 +74,7 @@ long long int getEntryTableIndex(long long int address, int* globalHistoryRegist
     return index;
 }
 
-double simulate(FILE* inFile, int* entryTable, int M, int N, double* mispredictionRate) {
+double calculateMispredictionRate(FILE* inFile, int* entryTable, int M, int N) {
 
     char actualPath;
     long long int address, entryTableIndex;
@@ -73,18 +87,7 @@ double simulate(FILE* inFile, int* entryTable, int M, int N, double* mispredicti
         entryTableIndex = getEntryTableIndex(address, &globalHistoryRegister, M, N);
 
         if (printVerbose) {
-            printf("address=%llx, index=%llx, actual=%c\n", address, entryTableIndex, actualPath, M, N);
-        }
-
-        if (op == READ_OPERATION) {
-            read(cache, setIndex, tag, associativity);
-        }
-        else if (op == WRITE_OPERATION) {
-            write(cache, setIndex, tag, associativity);
-        }
-        else {
-            printf("Operation is unexpected!\n");
-            return -1;
+            printf("address=%llx, index=%llx, actual=%c, M=%d, N=%d\n", address, entryTableIndex, actualPath, M, N);
         }
     }
 }
@@ -99,13 +102,13 @@ int driver(int M, int N, char* traceFile) {
 
     FILE* outFile = fopen("out.txt", "w");
 
-    int* entryTable = (int*)malloc(sizeof(int)*pow(2, M));
-
+    int* entryTable = (int*)malloc(sizeof(int)*power(2, M));
     initializeEntryTable(entryTable, M);
 
-    double mispredictionRate = simulate(inFile, entryTable, M, N);
+    double mispredictionRate = calculateMispredictionRate(inFile, entryTable, M, N);
 
     output(outFile, M, N, mispredictionRate);
+
     free(entryTable);
 
     fclose(inFile);
@@ -116,11 +119,10 @@ int driver(int M, int N, char* traceFile) {
 int main(int argc, char *argv[]) {
 
     if (argc != 4) {
+        printf("Execution input error 1\n");
         return -1;
     }
 
-    // M = entry table # of bits
-    // N = global history register # of bits
     // /sim gshare <GPB> <RB> <Trace_File>
 
     // ./main.out 32768 4 0 1 trace_files/minife.t 
@@ -128,10 +130,10 @@ int main(int argc, char *argv[]) {
     char* remaining = NULL;
 
     int M = strtol(argv[1], &remaining, 10);
-    if (strlen(remaining) != 0 || M <= 0) { return -1; }
+    if (strlen(remaining) != 0 || M <= 0) { printf("Execution input error 2\n"); return -1; }
 
     int N = strtol(argv[2], &remaining, 10);
-    if (strlen(remaining) != 0 || N <= 0) { return -1; }
+    if (strlen(remaining) != 0 || N <= 0) { printf("Execution input error 3\n"); return -1; }
     
     char* traceFile = (char*)malloc(100*sizeof(char));
     strcpy(traceFile, argv[3]);
