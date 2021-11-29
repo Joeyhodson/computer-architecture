@@ -1,0 +1,2 @@
+Configuration: M = 8, N = 5
+Misprediction Rate: 7.48%

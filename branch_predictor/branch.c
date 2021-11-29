@@ -30,21 +30,15 @@
 
 #define BYTE_OFFSET_BIT_COUNT 2
 
-int printVerbose = 1;
+int printVerbose = 0;
 
 int power(int base, int exponent) {
 
-    if (exponent < 0) {
-        return -1;
-    }
-    else if (exponent == 0) {
+    if (exponent == 0) {
         return 1;
     }
-    else if (exponent == 1) {
-        return base;
-    }
     else {
-        return power(base*base, exponent - 1);
+        return base*power(base, exponent - 1);
     }
 }
 
@@ -59,10 +53,10 @@ void initializeEntryTable(int* entryTable, int M) {
 void output(FILE* outFile, int M, int N, double mispredictionRate) {
 
     fprintf(outFile, "Configuration: M = %d, N = %d\n", M, N);
-    fprintf(outFile, "Misprediction Rate: %.2f\n", mispredictionRate);
+    fprintf(outFile, "Misprediction Rate: %.2f\%\n", 100*mispredictionRate);
 }
 
-
+// TODO handle when M < N
 long long int getEntryTableIndex(long long int address, int* globalHistoryRegister, int M, int N) {
 
     unsigned int mask = (1 << M) - 1;
@@ -74,22 +68,89 @@ long long int getEntryTableIndex(long long int address, int* globalHistoryRegist
     return index;
 }
 
+
+void updateGHR(char actualPath, int* globalHistoryRegister, int N) {
+
+    *globalHistoryRegister = ((*globalHistoryRegister) >> 1);
+    if (actualPath == 't') {
+        int mask = (1 << (N-1));
+        *globalHistoryRegister = ((*globalHistoryRegister) | mask);
+    }
+}
+
+
+void updateEntryTable(int* entryTable, long long int entryTableIndex, char actualPath, int* mispredictions) {
+
+    int currentPredictionAtEntry = entryTable[entryTableIndex];
+    
+    switch(currentPredictionAtEntry) {
+        // Not taken
+        case STRONGLY_NOT_TAKEN:
+            if (actualPath == 't') {
+                (*mispredictions)++;
+                entryTable[entryTableIndex] = WEAKLY_NOT_TAKEN;
+            }
+            else {}
+            break;
+
+        case WEAKLY_NOT_TAKEN:
+            if (actualPath == 't') {
+                (*mispredictions)++;
+                entryTable[entryTableIndex] = WEAKLY_TAKEN;
+            }
+            else {
+                entryTable[entryTableIndex] = STRONGLY_NOT_TAKEN;
+            }
+            break;
+
+        // Taken
+        case WEAKLY_TAKEN:
+            if (actualPath == 't') {
+                entryTable[entryTableIndex] = STRONGLY_TAKEN;
+            }
+            else {
+                (*mispredictions)++;
+                entryTable[entryTableIndex] = WEAKLY_NOT_TAKEN;
+            }
+            break;
+
+        case STRONGLY_TAKEN:
+            if (actualPath == 't') {}
+            else {
+                (*mispredictions)++;
+                entryTable[entryTableIndex] = WEAKLY_TAKEN;
+            }
+            break;
+
+        default:
+            printf("Entry table error.\n");
+            break;
+    }
+}
+
+
 double calculateMispredictionRate(FILE* inFile, int* entryTable, int M, int N) {
 
     char actualPath;
     long long int address, entryTableIndex;
-    int globalHistoryRegister;
+    int globalHistoryRegister = 0, totalPredictions = 0, mispredictions = 0;
 
     while (!feof(inFile)) {
 
         fscanf(inFile, "%llx %c\n", &address, &actualPath);
 
         entryTableIndex = getEntryTableIndex(address, &globalHistoryRegister, M, N);
+        updateEntryTable(entryTable, entryTableIndex, actualPath, &mispredictions);
+        updateGHR(actualPath, &globalHistoryRegister, N);
+        totalPredictions++;
 
         if (printVerbose) {
-            printf("address=%llx, index=%llx, actual=%c, M=%d, N=%d\n", address, entryTableIndex, actualPath, M, N);
+            printf("address=%llx, index=%d, M=%d, N=%d\n", address, entryTableIndex, M, N);
+            printf("actual_path=%c, current_prediction=%d, mispredictions=%d\n\n", actualPath, entryTable[entryTableIndex], mispredictions);
         }
     }
+
+    return ((double)mispredictions / (double)totalPredictions);
 }
 
 
@@ -122,10 +183,6 @@ int main(int argc, char *argv[]) {
         printf("Execution input error 1\n");
         return -1;
     }
-
-    // /sim gshare <GPB> <RB> <Trace_File>
-
-    // ./main.out 32768 4 0 1 trace_files/minife.t 
 
     char* remaining = NULL;
 
