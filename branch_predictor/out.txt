@@ -1,3 +1,3 @@
-Trace file: ./trace_files/mcf_trace.txt
-Configuration: M = 8, N = 4
-Misprediction Rate: 10.22%
+Trace file: ./trace_files/gobmk_trace.txt
+Configuration: M = 4, N = 2
+Misprediction Rate: 0.87%

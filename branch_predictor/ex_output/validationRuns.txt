@@ -4,7 +4,7 @@ Configuration A: M = 8, N = 5
    MCF: misprediction rate = 7.48%
    GoBMK: misprediction rate = 0.51%
 
-Configuration B: M = 4, N = 5
+Configuration B: M = 4, N = 2
    MCF: misprediction rate = 26.86%
    GoBMK: misprediction rate = 0.87%
 

@@ -150,7 +150,11 @@ double calculateMispredictionRate(FILE* inFile, int* entryTable, int M, int N) {
 
         entryTableIndex = getEntryTableIndex(address, &globalHistoryRegister, M, N);
         updateEntryTable(entryTable, entryTableIndex, actualPath, &mispredictions);
-        updateGHR(actualPath, &globalHistoryRegister, N);
+        
+        if (N != 0) {
+            updateGHR(actualPath, &globalHistoryRegister, N);
+        }
+
         totalPredictions++;
 
         if (printVerbose) {
@@ -199,7 +203,7 @@ int main(int argc, char *argv[]) {
     if (strlen(remaining) != 0 || M <= 0) { printf("Execution input error 2\n"); return -1; }
 
     int N = strtol(argv[2], &remaining, 10);
-    if (strlen(remaining) != 0 || N <= 0) { printf("Execution input error 3\n"); return -1; }
+    if (strlen(remaining) != 0 || N < 0) { printf("Execution input error 3\n"); return -1; }
     
     char* traceFile = (char*)malloc(100*sizeof(char));
     strcpy(traceFile, argv[3]);

@@ -1,5 +1,2 @@
 Project Purpose:
-    
-
-Command Line Arguments:
-    
+    The purpose of the project is to simulate a global branch predictor with variable inputs for M and N. M is the lower bits of the program counter (provided in the trace file) and N is the count of bits for the global history register.
